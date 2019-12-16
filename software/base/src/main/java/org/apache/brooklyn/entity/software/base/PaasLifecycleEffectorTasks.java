@@ -55,6 +55,13 @@ public class PaasLifecycleEffectorTasks extends AbstractLifecycleEffectorTasks {
 
             final PaasLocation location = (PaasLocation) getLocation(locations);
 
+            log.info("********** SELECTED LOCATION from PaasLifecycleEffectorTasks ***************");
+            log.info("input locations are blank: {}", ((locations == null) || (locations.isEmpty())));
+            log.info("location is null => {}", location == null);
+            log.info("locationId: {}", location.getId());
+            log.info("****************************************************************************");
+
+
             DynamicTasks.queue("preStart", new Runnable() {
                 @Override
                 public void run() {
@@ -152,7 +159,8 @@ public class PaasLifecycleEffectorTasks extends AbstractLifecycleEffectorTasks {
             ServiceStateLogic.setExpectedState(entity(), Lifecycle.ON_FIRE);
             log.error("Error error restarting entity {}", entity());
             throw Exceptions.propagate(t);
-        }    }
+        }
+    }
 
     @Override
     public void stop(ConfigBag parameters) {

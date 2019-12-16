@@ -140,15 +140,23 @@ public abstract class AbstractApplicationCloudFoundryDriver
     @Override
     public void stop() {
         super.stop();
-        getClient().stopApplication(getApplicationName());
+        try{
+            getClient().stopApplication(getApplicationName());
         //deleteApplication();
+        } catch (Exception e){
+            log.error("***** Error calling to cloudFoundry STOP effector : " + e.getMessage());
+        }
     }
 
     @Override
     public void deleteApplication() {
-        log.info("************************ DELETING from driver-->" + getApplicationName());
-        getClient().deleteApplication(getApplicationName());
-        log.info("************************ DELETED from driver-->" + getApplicationName());
+        try{
+            log.info("************************ DELETING from driver-->" + getApplicationName());
+            getClient().deleteApplication(getApplicationName());
+            log.info("************************ DELETED from driver-->" + getApplicationName());
+        } catch (Exception e){
+            log.error("***** Error calling to cloudFoundry DELETE operation: " + e.getMessage());
+        }
     }
 
     protected String inferApplicationDomainUri(String name) {
