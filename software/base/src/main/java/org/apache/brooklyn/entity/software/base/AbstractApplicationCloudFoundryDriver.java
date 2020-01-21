@@ -130,31 +130,70 @@ public abstract class AbstractApplicationCloudFoundryDriver
 
     @Override
     public void restart() {
-        if (getClient().getApplication(getApplicationName()).getState() == CloudApplication.AppState.STOPPED) {
-            getClient().startApplication(getApplicationName());
-        } else {
-            getClient().restartApplication(getApplicationName());
+
+        int i = 0;
+        int limit = 20;
+        while (i <= limit) {
+            try {
+
+                log.info("Restarting in CF app: {}", getApplicationName());
+                i++;
+                if (getClient().getApplication(getApplicationName()).getState() == CloudApplication.AppState.STOPPED) {
+                    log.info("Restarting in CF app: {}, it is stopped so start", getApplicationName());
+                    getClient().startApplication(getApplicationName());
+                    return;
+                } else {
+                    log.info("Restarting in CF app: {}, it is NOT stopped so restart", getApplicationName());
+                    getClient().restartApplication(getApplicationName());
+                    return;
+                }
+            } catch (Exception e) {
+                if (i==limit){
+                    throw new RuntimeException("Entity can not be restarted: " + getApplicationName(), e);
+                }
+                refresh();
+                log.error("Error restarting application -{}-. Try again ({})", getApplicationName(), i);
+            }
         }
+    }
+
+    public void refresh() {
+        int i = 0;
+        while (i < 10)
+            try {
+                log.info("_______________________________________"+i);
+                log.info("_______________________________________"+i);
+                log.info("_______________________________________"+i);
+                log.info("Calling Login Refresh");
+                getClient().login().getRefreshToken();
+                return;
+            } catch (Exception e) {
+                log.error("Error in refresh: retrying. {}", e.getCause());
+                i++;
+                if (i == 10) {
+                    throw e;
+                }
+            }
     }
 
     @Override
     public void stop() {
         super.stop();
-        try{
+        try {
             getClient().stopApplication(getApplicationName());
-        //deleteApplication();
-        } catch (Exception e){
+            //deleteApplication();
+        } catch (Exception e) {
             log.error("***** Error calling to cloudFoundry STOP effector : " + e.getMessage());
         }
     }
 
     @Override
     public void deleteApplication() {
-        try{
+        try {
             log.info("************************ DELETING from driver-->" + getApplicationName());
             getClient().deleteApplication(getApplicationName());
             log.info("************************ DELETED from driver-->" + getApplicationName());
-        } catch (Exception e){
+        } catch (Exception e) {
             log.error("***** Error calling to cloudFoundry DELETE operation: " + e.getMessage());
         }
     }
